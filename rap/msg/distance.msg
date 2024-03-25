@@ -1,1 +1,1 @@
-float32[] distance
+float32[10] distance

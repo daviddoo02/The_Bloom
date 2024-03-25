@@ -64,7 +64,7 @@ class S_Type:
         self.Servo_1.angle = self.current_angle
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Linear Actuator Node')
+    parser = argparse.ArgumentParser(description='B Type Node')
     parser.add_argument('--motor1_index', metavar='motor1_index', type=int, help='Index of 1st motor in the b type unit')
     args, unknown = parser.parse_known_args()
 

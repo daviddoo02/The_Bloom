@@ -2,22 +2,40 @@
 
 import RPi.GPIO as GPIO
 import time
+import rospy
+from rap.msg import distance
+import argparse
 
 
 class UltraSonic:
-    def __init__(self):
+    def __init__(self, index, trigger, echo):
         # GPIO Mode (BOARD / BCM)
         GPIO.setmode(GPIO.BCM)
 
         # set GPIO Pins
-        self.GPIO_TRIGGER = 4
-        self.GPIO_ECHO = 17
+        self.GPIO_TRIGGER = trigger
+        self.GPIO_ECHO = echo
+        self.index = index
 
         # set GPIO direction (IN / OUT)
         GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
         GPIO.setup(self.GPIO_ECHO, GPIO.IN)
 
-    def distance(self):
+        pub = rospy.Publisher('distance', distance, queue_size=10)
+        rospy.init_node('sonar_sensor_node' + str(self.index))
+        rate = rospy.Rate(2) # hz
+        protocol_obj = distance()
+
+        while not rospy.is_shutdown():
+            protocol_obj.distance[self.index] = self.get_distance()
+            rospy.loginfo(protocol_obj)
+            pub.publish(protocol_obj)
+            
+            rate.sleep()
+
+        rospy.on_shutdown(self.shut_down)
+
+    def get_distance(self):
         # set Trigger to HIGH
         GPIO.output(self.GPIO_TRIGGER, True)
 
@@ -43,16 +61,21 @@ class UltraSonic:
         distance = (timeelapsed * 34300) / 2
 
         return distance
+    
+    def shut_down(self):
+        GPIO.cleanup()
+        return
 
 
 if __name__ == '__main__':
     try:
-        us = UltraSonic()
-        while True:
-            dist = us.distance()
-            print ("Measured Distance = %.1f cm" % dist)
-            time.sleep(0.1)
+        parser = argparse.ArgumentParser(description='Sonar Sensor Node')
+        parser.add_argument('--index', metavar='index', type=int, help='Index of sonar sensor')
+        parser.add_argument('--trigger', metavar='trigger', type=int, help='Trigger pin in BCM')
+        parser.add_argument('--echo', metavar='echo', type=int, help='Echo pin in BCM')
+        args, unknown = parser.parse_known_args()
 
-    except KeyboardInterrupt:
-        print("Measurement stopped by User")
+        us = UltraSonic(args.index, args.trigger, args.echo)
+
+    except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit):
         GPIO.cleanup()
