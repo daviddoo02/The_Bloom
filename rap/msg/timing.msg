@@ -1,1 +1,1 @@
-int32[] timing_index
+int32 timing_index
