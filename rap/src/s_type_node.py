@@ -29,9 +29,9 @@ class S_Type:
 
         self.initialize_servos(motor1, motor2)
 
-        sub_topic = 'timing'
+        self.index = 0
 
-        self.sub = rospy.Subscriber(sub_topic, timing, self.actuate)
+        rospy.Timer(rospy.Duration(0.2), self.actuate)
 
         while not rospy.is_shutdown():
             rospy.spin()
@@ -58,15 +58,18 @@ class S_Type:
         theta = 145/2 * np.cos(t/10 + np.pi) + 145/2
         return theta
     
-    def actuate(self, msg):
-        index = msg.timing_index
-
-        theta = self.get_angle(index)
+    def actuate(self, timer):
+        theta = self.get_angle(self.index)
         
         self.current_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * self.current_angle
 
         self.Servo_1.angle = self.current_angle
         self.Servo_2.angle = self.current_angle
+
+        self.index += 1
+
+        if self.index > (2*np.pi/(1/10)):
+            self.index = 0
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='S Type Node')

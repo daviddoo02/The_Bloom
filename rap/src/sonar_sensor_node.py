@@ -23,13 +23,13 @@ class UltraSonic:
 
         pub = rospy.Publisher('distance', distance, queue_size=10)
         rospy.init_node('sonar_sensor_node' + str(self.index))
-        rate = rospy.Rate(2) # hz
-        protocol_obj = distance()
+        rate = rospy.Rate(10) # hz
+        self.protocol_obj = distance()
 
         while not rospy.is_shutdown():
-            protocol_obj.distance[self.index] = self.get_distance()
-            rospy.loginfo(protocol_obj)
-            pub.publish(protocol_obj)
+            self.protocol_obj.distance[self.index] = self.get_distance()
+            rospy.loginfo(self.protocol_obj.distance[self.index])
+            pub.publish(self.protocol_obj)
             
             rate.sleep()
 

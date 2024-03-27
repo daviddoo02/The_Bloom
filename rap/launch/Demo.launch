@@ -1,4 +1,6 @@
 <launch>
     <node name="s_type_node_0" pkg="rap" type="s_type_node.py" args="--motor1_index 0 --motor2_index 1" cwd="node"/>
+    <node name="b_type_node_0" pkg="rap" type="b_type_node.py" args="--motor1_index 2" cwd="node"/>
+    <node name="sonar_sensor_node_0" pkg="rap" type="sonar_sensor_node.py" args="--index 0 --trigger 17 --echo 27" cwd="node"/>
     <node name="timing_node" pkg="rap" type="timing_node.py" cwd="node"/>
 </launch>

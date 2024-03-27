@@ -6,7 +6,7 @@ from rap.msg import timing
 def talker(protocol_obj):
     pub = rospy.Publisher('timing', timing, queue_size=10)
     rospy.init_node('protocol_node', anonymous=True)
-    rate = rospy.Rate(2) # hz
+    rate = rospy.Rate(3) # hz
     t_index = 0
     while not rospy.is_shutdown():
         protocol_obj.timing_index = t_index

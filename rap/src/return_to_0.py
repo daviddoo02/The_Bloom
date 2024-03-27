@@ -40,7 +40,7 @@ def main():
     S7.angle = theta
     S8.angle = theta
     S9.angle = theta
-    time.sleep(5)
+    time.sleep(1)
 
 
 if __name__ == '__main__':
