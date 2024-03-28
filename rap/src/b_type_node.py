@@ -12,11 +12,12 @@ from board import SCL, SDA
 import busio
 from adafruit_motor import servo
 from adafruit_pca9685 import PCA9685
+import csv
 import argparse
 
 
-class S_Type:
-    def __init__(self, motor1) -> None:
+class b_Type:
+    def __init__(self, csv_file, motor1) -> None:
 
         i2c = busio.I2C(SCL, SDA)
         self.pca = PCA9685(i2c)
@@ -29,9 +30,10 @@ class S_Type:
 
         self.initialize_servos(motor1)
 
+        self.angle_values = self.load_angle_values(csv_file)
         self.index = 0
 
-        rospy.Timer(rospy.Duration(0.3), self.actuate)
+        rospy.Timer(rospy.Duration(0.1), self.actuate)
 
         while not rospy.is_shutdown():
             rospy.spin()
@@ -50,20 +52,24 @@ class S_Type:
         self.Servo_1.angle = 0
         time.sleep(1)
     
-    def get_angle(self, t):
-        theta = 180/2 * np.cos(t/10 + np.pi) + 180/2
-        return theta
+    def load_angle_values(self, csv_file):
+        # Load angle values from CSV file
+        angle_values = []
+        with open(csv_file, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                angle_values.append(float(row[0]))  # Assuming only one angle per row
+        return angle_values
     
     def actuate(self, timer):
-        theta = self.get_angle(self.index)
+        theta = self.angle_values[self.index]
         
         self.current_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * self.current_angle
 
         self.Servo_1.angle = self.current_angle
 
         self.index += 1
-
-        if self.index > (2*np.pi/(1/10)):
+        if self.index >= len(self.angle_values):
             self.index = 0
 
 if __name__ == '__main__':
@@ -72,7 +78,8 @@ if __name__ == '__main__':
     args, unknown = parser.parse_known_args()
 
     try:
-        s_type = S_Type(args.motor1_index)
+        csv_file = 'angles_B_type.csv'
+        s_type = b_Type(csv_file, args.motor1_index)
 
     except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit):
         pass

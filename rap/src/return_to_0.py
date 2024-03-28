@@ -29,18 +29,31 @@ def main():
     S7 = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2600, actuation_range=270)
     S8 = servo.Servo(pca.channels[8], min_pulse=500, max_pulse=2600, actuation_range=270)
     S9 = servo.Servo(pca.channels[9], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S10 = servo.Servo(pca.channels[10], min_pulse=500, max_pulse=2600, actuation_range=270)
 
     S0.angle = theta
+    time.sleep(1)
     S1.angle = theta
+    time.sleep(1)
     S2.angle = theta
+    time.sleep(1)
     S3.angle = theta
+    time.sleep(1)
     S4.angle = theta
+    time.sleep(1)
     S5.angle = theta
+    time.sleep(1)
     S6.angle = theta
+    time.sleep(1)
     S7.angle = theta
+    time.sleep(1)
     S8.angle = theta
+    time.sleep(1)
     S9.angle = theta
     time.sleep(1)
+    S10.angle = theta
+    time.sleep(1)
+
 
 
 if __name__ == '__main__':
