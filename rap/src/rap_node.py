@@ -51,7 +51,7 @@ class RAP:
         self.nb1 = 1
         self.nb2 = 1
 
-        rospy.Timer(rospy.Duration(1), self.actuate)
+        rospy.Timer(rospy.Duration(0.5), self.actuate)
 
         while not rospy.is_shutdown():
             rospy.spin()

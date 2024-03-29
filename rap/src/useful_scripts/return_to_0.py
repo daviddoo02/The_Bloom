@@ -35,56 +35,44 @@ def main():
         theta = 0
 
         S0.angle = theta
-        #time.sleep(1)
         S1.angle = theta
-        #time.sleep(1)
-        S2.angle = theta
-        #time.sleep(1)
-        S3.angle = theta
-        #time.sleep(1)
-        S4.angle = theta
-        #time.sleep(1)
-        S5.angle = theta
-        #time.sleep(1)
-        S6.angle = theta
-        #time.sleep(1)
-        S7.angle = theta
-        #time.sleep(1)
-        S8.angle = theta
-        #time.sleep(1)
-        S9.angle = theta
-        #time.sleep(1)
-        S10.angle = theta
-        #time.sleep(1)
-
         time.sleep(1)
+        S2.angle = theta
+        S3.angle = theta
+        time.sleep(1)
+        S4.angle = theta
+        S5.angle = theta
+        time.sleep(1)
+        S6.angle = theta
+        S7.angle = theta
+        time.sleep(1)
+        S8.angle = theta
+        S9.angle = theta
+        S10.angle = theta
+        time.sleep(1)
+
+        # time.sleep(5)
 
         theta = 270
 
         S0.angle = theta
-        #time.sleep(1)
         S1.angle = theta
-        #time.sleep(1)
-        S2.angle = theta
-        #time.sleep(1)
-        S3.angle = theta
-        #time.sleep(1)
-        S4.angle = theta
-        #time.sleep(1)
-        S5.angle = theta
-        #time.sleep(1)
-        S6.angle = theta
-        #time.sleep(1)
-        S7.angle = theta
-        #time.sleep(1)
-        S8.angle = theta
-        #time.sleep(1)
-        S9.angle = theta
-        #time.sleep(1)
-        S10.angle = theta
-        #time.sleep(1)
-
         time.sleep(1)
+        S2.angle = theta
+        S3.angle = theta
+        time.sleep(1)
+        S4.angle = theta
+        S5.angle = theta
+        time.sleep(1)
+        S6.angle = theta
+        S7.angle = theta
+        time.sleep(1)
+        S8.angle = theta
+        S9.angle = theta
+        S10.angle = theta
+        time.sleep(1)
+
+        # time.sleep(5)
 
 if __name__ == '__main__':
     try:
