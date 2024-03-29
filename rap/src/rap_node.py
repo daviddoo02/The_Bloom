@@ -12,7 +12,6 @@ from board import SCL, SDA
 import busio
 from adafruit_motor import servo
 from adafruit_pca9685 import PCA9685
-import argparse
 import csv
 
 
@@ -24,7 +23,6 @@ class RAP:
         self.pca.frequency = 50
 
         self.smoothing_factor = 0.2
-        self.current_angle = 0
 
         rospy.init_node('rap_node')
 
@@ -36,7 +34,22 @@ class RAP:
         self.s_angles = self.load_angle_values(s_type_csv)
         self.b_angles = self.load_angle_values(b_type_csv)
         
-        self.index = 0
+        self.ths0, self.ids0 = 0, 0
+        self.ths1, self.ids1 = 0, 0
+        self.ths2, self.ids2 = 0, 0
+        self.ths3, self.ids3 = 0, 0
+        self.thb0, self.idb0 = 0, 0
+        self.thb1, self.idb1 = 0, 0
+        self.thb2, self.idb2 = 0, 0
+
+        # Control speed of each panel --> connect to sonar sensor later
+        self.ns0 = 1
+        self.ns1 = 1
+        self.ns2 = 1
+        self.ns3 = 1
+        self.nb0 = 1
+        self.nb1 = 1
+        self.nb2 = 1
 
         rospy.Timer(rospy.Duration(0.2), self.actuate)
 
@@ -91,10 +104,8 @@ class RAP:
         # B2
         self.B2 = servo.Servo(
             self.pca.channels[10], min_pulse=500, max_pulse=2600, actuation_range=270)
-
-        self.Servo_1.angle = 0
-        self.Servo_2.angle = 0
-        time.sleep(1)
+        
+        self.shutdown()
 
     def get_next_angle(self, previous_angle, angle_list, index, multiplier):
         """
@@ -110,11 +121,52 @@ class RAP:
         if index >= len(angle_list):
             index = 0
         
-        return next_angle, theta
+        return next_angle, index
     
     def actuate(self, timer):
-        return
+        """
+        self.ths0, self.ids0
+        self.ths1, self.ids1
+        self.ths2, self.ids2
+        self.ths3, self.ids3
+        self.thb0, self.idb0
+        self.thb1, self.idb1
+        self.thb2, self.idb2
 
+        self.ns0
+        self.ns1
+        self.ns2
+        self.ns3
+        self.nb0
+        self.nb1
+        self.nb2
+        """
+
+        self.B0.angle = self.thb0
+
+        self.S3_0.angle = self.ths3
+        self.S3_1.angle = self.ths3
+
+        self.S1_0.angle = self.ths1
+        self.S1_1.angle = self.ths1
+        
+        self.S0_0.angle = self.ths0
+        self.S0_1.angle = self.ths0
+
+        self.S2_0.angle = self.ths2
+        self.S2_1.angle = self.ths2
+        
+        self.B2.angle = self.thb2
+
+        self.B1.angle = self.thb1
+
+        self.ths0, self.ids0 = self.get_next_angle(self.ths0, self.s_angles, self.ids0, self.ns0)
+        self.ths1, self.ids1 = self.get_next_angle(self.ths1, self.s_angles, self.ids1, self.ns1)
+        self.ths2, self.ids2 = self.get_next_angle(self.ths2, self.s_angles, self.ids2, self.ns2)
+        self.ths3, self.ids3 = self.get_next_angle(self.ths3, self.s_angles, self.ids3, self.ns3)
+        self.thb0, self.idb0 = self.get_next_angle(self.thb0, self.b_angles, self.idb0, self.nb0)
+        self.thb1, self.idb1 = self.get_next_angle(self.thb1, self.b_angles, self.idb1, self.nb1)
+        self.thb2, self.idb2 = self.get_next_angle(self.thb2, self.b_angles, self.idb2, self.nb2)
 
     def shutdown(self):
         """
@@ -149,10 +201,11 @@ class RAP:
         self.S2_1.angle = 0
         time.sleep(1)
         
-
         self.B2.angle = 0
         time.sleep(1)
-        return
+
+        self.B1.angle = 0
+        time.sleep(1)
 
 if __name__ == '__main__':
     try:
