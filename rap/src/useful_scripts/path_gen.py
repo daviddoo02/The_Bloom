@@ -21,7 +21,7 @@ def main():
     angles_B_type = [get_angle_B_type(t) for t in time_values]
 
     # Write angles for S type to CSV file
-    with open('angles_S_type.csv', 'w', newline='') as csvfile_S_type:
+    with open('../csv/angles_S_type.csv', 'w', newline='') as csvfile_S_type:
         writer_S_type = csv.writer(csvfile_S_type)
         for angle_S in angles_S_type:
             writer_S_type.writerow([angle_S])
@@ -29,7 +29,7 @@ def main():
     print("CSV file 'angles_S_type.csv' has been generated.")
 
     # Write angles for B type to CSV file
-    with open('angles_B_type.csv', 'w', newline='') as csvfile_B_type:
+    with open('../csv/angles_B_type.csv', 'w', newline='') as csvfile_B_type:
         writer_B_type = csv.writer(csvfile_B_type)
         for angle_B in angles_B_type:
             writer_B_type.writerow([angle_B])
