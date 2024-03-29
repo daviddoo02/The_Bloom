@@ -53,7 +53,7 @@ def main():
 
         # time.sleep(5)
 
-        theta = 270
+        # theta = 270
 
         S0.angle = theta
         S1.angle = theta
