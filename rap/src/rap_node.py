@@ -53,7 +53,8 @@ class RAP:
 
         rospy.Timer(rospy.Duration(1), self.actuate)
 
-        rospy.spin()
+        while not rospy.is_shutdown():
+            rospy.spin()
 
         rospy.on_shutdown(self.shutdown)
 
@@ -71,41 +72,45 @@ class RAP:
 
         # S0
         self.S0_0 = servo.Servo(
-            self.pca.channels[0], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[0], min_pulse=500, max_pulse=2500, actuation_range=270)
         self.S0_1 = servo.Servo(
-            self.pca.channels[1], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[1], min_pulse=500, max_pulse=2500, actuation_range=270)
 
         # S1
         self.S1_0 = servo.Servo(
-            self.pca.channels[2], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[2], min_pulse=500, max_pulse=2500, actuation_range=270)
         self.S1_1 = servo.Servo(
-            self.pca.channels[3], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[3], min_pulse=500, max_pulse=2500, actuation_range=270)
         
         # S2
         self.S2_0 = servo.Servo(
-            self.pca.channels[4], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[4], min_pulse=500, max_pulse=2500, actuation_range=270)
         self.S2_1 = servo.Servo(
-            self.pca.channels[5], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[5], min_pulse=500, max_pulse=2500, actuation_range=270)
         
         # S3
         self.S3_0 = servo.Servo(
-            self.pca.channels[6], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[6], min_pulse=500, max_pulse=2500, actuation_range=270)
         self.S3_1 = servo.Servo(
-            self.pca.channels[7], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[7], min_pulse=500, max_pulse=2500, actuation_range=270)
         
         # B0
         self.B0 = servo.Servo(
-            self.pca.channels[8], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[8], min_pulse=500, max_pulse=2500, actuation_range=270)
         
         # B1
         self.B1 = servo.Servo(
-            self.pca.channels[9], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[9], min_pulse=500, max_pulse=2500, actuation_range=270)
         
         # B2
         self.B2 = servo.Servo(
-            self.pca.channels[10], min_pulse=500, max_pulse=2600, actuation_range=270)
+            self.pca.channels[10], min_pulse=500, max_pulse=2500, actuation_range=270)
         
+        time.sleep(1)
+
         self.shutdown()
+
+        return
 
     def get_next_angle(self, previous_angle, angle_list, index, multiplier):
         """
@@ -168,6 +173,8 @@ class RAP:
         self.thb1, self.idb1 = self.get_next_angle(self.thb1, self.b_angles, self.idb1, self.nb1)
         self.thb2, self.idb2 = self.get_next_angle(self.thb2, self.b_angles, self.idb2, self.nb2)
 
+        return
+    
     def shutdown(self):
         """
         self.S0_0
@@ -206,6 +213,8 @@ class RAP:
 
         self.B1.angle = 0
         time.sleep(1)
+
+        return
 
 if __name__ == '__main__':
     try:
