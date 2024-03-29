@@ -35,6 +35,7 @@ class RAP:
 
         self.s_angles = self.load_angle_values(s_type_csv)
         self.b_angles = self.load_angle_values(b_type_csv)
+        
         self.index = 0
 
         rospy.Timer(rospy.Duration(0.2), self.actuate)
@@ -112,18 +113,45 @@ class RAP:
         return next_angle, theta
     
     def actuate(self, timer):
-        # theta = self.angle_values[self.index]
+        return
 
-        # self.current_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * self.current_angle
-
-        self.Servo_1.angle = self.current_angle
-        self.Servo_2.angle = self.current_angle
-
-        # self.index += 1
-        # if self.index >= len(self.angle_values):
-        #     self.index = 0
 
     def shutdown(self):
+        """
+        self.S0_0
+        self.S0_1
+        self.S1_0
+        self.S1_1
+        self.S2_0
+        self.S2_1
+        self.S3_0
+        self.S3_1
+        self.B0
+        self.B1
+        self.B2
+        """
+        self.B0.angle = 0
+        time.sleep(1)
+
+        self.S3_0.angle = 0
+        self.S3_1.angle = 0
+        time.sleep(1)
+
+        self.S1_0.angle = 0
+        self.S1_1.angle = 0
+        time.sleep(1)
+        
+        self.S0_0.angle = 0
+        self.S0_1.angle = 0
+        time.sleep(1)
+
+        self.S2_0.angle = 0
+        self.S2_1.angle = 0
+        time.sleep(1)
+        
+
+        self.B2.angle = 0
+        time.sleep(1)
         return
 
 if __name__ == '__main__':
