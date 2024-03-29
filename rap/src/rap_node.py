@@ -51,11 +51,11 @@ class RAP:
         self.nb1 = 1
         self.nb2 = 1
 
-        rospy.Timer(rospy.Duration(0.2), self.actuate)
+        rospy.Timer(rospy.Duration(1), self.actuate)
 
         rospy.spin()
 
-        rospy.on_shutdown(self.shut_down)
+        rospy.on_shutdown(self.shutdown)
 
     def load_angle_values(self, csv_file):
         # Load angle values from CSV file

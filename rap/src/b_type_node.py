@@ -73,13 +73,13 @@ class b_Type:
             self.index = 0
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='B Type Node')
-    parser.add_argument('--motor1_index', metavar='motor1_index', type=int, help='Index of 1st motor in the b type unit')
-    args, unknown = parser.parse_known_args()
+    # parser = argparse.ArgumentParser(description='B Type Node')
+    # parser.add_argument('--motor1_index', metavar='motor1_index', type=int, help='Index of 1st motor in the b type unit')
+    # args, unknown = parser.parse_known_args()
 
     try:
-        csv_file = 'angles_B_type.csv'
-        s_type = b_Type(csv_file, args.motor1_index)
+        csv_file = 'csv/angles_B_type.csv'
+        s_type = b_Type(csv_file, 5)
 
     except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit):
         pass
