@@ -17,60 +17,64 @@ def main():
 
     # Initializing each servos arcordingly
 
-    S0 = servo.Servo(pca.channels[0], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S1 = servo.Servo(pca.channels[1], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S2 = servo.Servo(pca.channels[2], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S3 = servo.Servo(pca.channels[3], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S4 = servo.Servo(pca.channels[4], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S5 = servo.Servo(pca.channels[5], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S6 = servo.Servo(pca.channels[6], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S7 = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S8 = servo.Servo(pca.channels[8], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S9 = servo.Servo(pca.channels[9], min_pulse=500, max_pulse=2500, actuation_range=270)
-    S10 = servo.Servo(pca.channels[10], min_pulse=500, max_pulse=2500, actuation_range=270)
+    S00 = servo.Servo(pca.channels[0], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S01 = servo.Servo(pca.channels[1], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S10 = servo.Servo(pca.channels[2], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S11 = servo.Servo(pca.channels[3], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S20 = servo.Servo(pca.channels[4], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S21 = servo.Servo(pca.channels[5], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S30 = servo.Servo(pca.channels[6], min_pulse=500, max_pulse=2600, actuation_range=270)
+    S31 = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2600, actuation_range=270)
+    B0 = servo.Servo(pca.channels[8], min_pulse=500, max_pulse=2600, actuation_range=270)
+    B1 = servo.Servo(pca.channels[9], min_pulse=500, max_pulse=2600, actuation_range=270)
+    B2 = servo.Servo(pca.channels[10], min_pulse=500, max_pulse=2600, actuation_range=270)
     
     time.sleep(1)
 
     while True:
         theta = 0
-
-        S0.angle = theta
-        S1.angle = theta
-        time.sleep(1)
-        S2.angle = theta
-        S3.angle = theta
-        time.sleep(1)
-        S4.angle = theta
-        S5.angle = theta
-        time.sleep(1)
-        S6.angle = theta
-        S7.angle = theta
-        time.sleep(1)
-        S8.angle = theta
-        S9.angle = theta
+        
+        B0.angle = theta
+        time.sleep(0.5)
+        S30.angle = theta
+        S31.angle = theta
+        time.sleep(0.5)
         S10.angle = theta
-        time.sleep(1)
+        S11.angle = theta
+        time.sleep(0.5)
+        S00.angle = theta
+        S01.angle = theta
+        time.sleep(0.5)
+        S20.angle = theta
+        S21.angle = theta
+        time.sleep(0.5)
+        B2.angle = theta
+        time.sleep(0.5)
+        B1.angle = theta
+        time.sleep(2)
 
         # time.sleep(5)
 
-        # theta = 270
+        theta = 270
 
-        S0.angle = theta
-        S1.angle = theta
-        time.sleep(1)
-        S2.angle = theta
-        S3.angle = theta
-        time.sleep(1)
-        S4.angle = theta
-        S5.angle = theta
-        time.sleep(1)
-        S6.angle = theta
-        S7.angle = theta
-        time.sleep(1)
-        S8.angle = theta
-        S9.angle = theta
+        B1.angle = theta
+        time.sleep(0.5)
+        B2.angle = theta
+        time.sleep(0.5)
+        S20.angle = theta
+        S21.angle = theta
+        time.sleep(0.5)
+        S00.angle = theta
+        S01.angle = theta
+        time.sleep(0.5)
         S10.angle = theta
-        time.sleep(1)
+        S11.angle = theta
+        time.sleep(0.5)
+        S30.angle = theta
+        S31.angle = theta
+        time.sleep(0.5)
+        B0.angle = theta
+        time.sleep(2)
 
         # time.sleep(5)
 

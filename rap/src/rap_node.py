@@ -3,7 +3,7 @@
 __authors__ = "David Ho"
 
 import rospy
-from rap.msg import distance
+from rap.msg import distance, timing
 import time
 
 import numpy as np
@@ -33,25 +33,39 @@ class RAP:
 
         self.s_angles = self.load_angle_values(s_type_csv)
         self.b_angles = self.load_angle_values(b_type_csv)
+
+        self.ids0 = 0
+        self.ids1 = 0
+        self.ids2 = 0
+        self.ids3 = 0
+        self.idb0 = 0
+        self.idb1 = 0
+        self.idb2 = 0
         
-        self.ths0, self.ids0 = 0, 0
-        self.ths1, self.ids1 = 0, 0
-        self.ths2, self.ids2 = 0, 0
-        self.ths3, self.ids3 = 0, 0
-        self.thb0, self.idb0 = 0, 0
-        self.thb1, self.idb1 = 0, 0
-        self.thb2, self.idb2 = 0, 0
+        self.ths0 = self.s_angles[self.ids0]
+        self.ths1 = self.s_angles[self.ids1]
+        self.ths2 = self.s_angles[self.ids2]
+        self.ths3 = self.s_angles[self.ids3]
+        self.thb0 = self.b_angles[self.idb0]
+        self.thb1 = self.b_angles[self.idb1]
+        self.thb2 = self.b_angles[self.idb2]
 
         # Control speed of each panel --> connect to sonar sensor later
-        self.ns0 = 1
-        self.ns1 = 1
-        self.ns2 = 1
-        self.ns3 = 1
-        self.nb0 = 1
-        self.nb1 = 1
-        self.nb2 = 1
+        
+        n = 3
 
-        rospy.Timer(rospy.Duration(0.5), self.actuate)
+        self.nb0 = n
+        self.ns3 = n
+        self.ns1 = n
+        self.ns0 = n
+        self.ns2 = n        
+        self.nb2 = n
+        self.nb1 = n
+
+        # rospy.Timer(rospy.Duration(0.5), self.actuate)
+        sub_topic = 'timing'
+
+        self.move_flowers = rospy.Subscriber(sub_topic, timing, self.actuate)
 
         while not rospy.is_shutdown():
             rospy.spin()
@@ -72,39 +86,39 @@ class RAP:
 
         # S0
         self.S0_0 = servo.Servo(
-            self.pca.channels[0], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[0], min_pulse=500, max_pulse=2600, actuation_range=270)
         self.S0_1 = servo.Servo(
-            self.pca.channels[1], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[1], min_pulse=500, max_pulse=2600, actuation_range=270)
 
         # S1
         self.S1_0 = servo.Servo(
-            self.pca.channels[2], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[2], min_pulse=500, max_pulse=2600, actuation_range=270)
         self.S1_1 = servo.Servo(
-            self.pca.channels[3], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[3], min_pulse=500, max_pulse=2600, actuation_range=270)
         
         # S2
         self.S2_0 = servo.Servo(
-            self.pca.channels[4], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[4], min_pulse=500, max_pulse=2600, actuation_range=270)
         self.S2_1 = servo.Servo(
-            self.pca.channels[5], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[5], min_pulse=500, max_pulse=2600, actuation_range=270)
         
         # S3
         self.S3_0 = servo.Servo(
-            self.pca.channels[6], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[6], min_pulse=500, max_pulse=2600, actuation_range=270)
         self.S3_1 = servo.Servo(
-            self.pca.channels[7], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[7], min_pulse=500, max_pulse=2600, actuation_range=270)
         
         # B0
         self.B0 = servo.Servo(
-            self.pca.channels[8], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[8], min_pulse=500, max_pulse=2600, actuation_range=270)
         
         # B1
         self.B1 = servo.Servo(
-            self.pca.channels[9], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[9], min_pulse=500, max_pulse=2600, actuation_range=270)
         
         # B2
         self.B2 = servo.Servo(
-            self.pca.channels[10], min_pulse=500, max_pulse=2500, actuation_range=270)
+            self.pca.channels[10], min_pulse=500, max_pulse=2600, actuation_range=270)
         
         time.sleep(1)
 
@@ -128,7 +142,7 @@ class RAP:
         
         return next_angle, index
     
-    def actuate(self, timer):
+    def actuate(self, msg):
         """
         self.ths0, self.ids0
         self.ths1, self.ids1
@@ -148,22 +162,29 @@ class RAP:
         """
 
         self.B0.angle = self.thb0
+        time.sleep(0.1)
 
         self.S3_0.angle = self.ths3
         self.S3_1.angle = self.ths3
+        time.sleep(0.1)
 
         self.S1_0.angle = self.ths1
         self.S1_1.angle = self.ths1
+        time.sleep(0.1)
         
         self.S0_0.angle = self.ths0
         self.S0_1.angle = self.ths0
+        time.sleep(0.1)
 
         self.S2_0.angle = self.ths2
         self.S2_1.angle = self.ths2
+        time.sleep(0.1)
         
         self.B2.angle = self.thb2
+        time.sleep(0.1)
 
         self.B1.angle = self.thb1
+        time.sleep(0.1)
 
         self.ths0, self.ids0 = self.get_next_angle(self.ths0, self.s_angles, self.ids0, self.ns0)
         self.ths1, self.ids1 = self.get_next_angle(self.ths1, self.s_angles, self.ids1, self.ns1)
@@ -192,20 +213,20 @@ class RAP:
         self.B0.angle = 0
         time.sleep(1)
 
-        self.S3_0.angle = 0
-        self.S3_1.angle = 0
+        self.S3_0.angle = 145
+        self.S3_1.angle = 145
         time.sleep(1)
 
-        self.S1_0.angle = 0
-        self.S1_1.angle = 0
+        self.S1_0.angle = 145
+        self.S1_1.angle = 145
         time.sleep(1)
         
-        self.S0_0.angle = 0
-        self.S0_1.angle = 0
+        self.S0_0.angle = 145
+        self.S0_1.angle = 145
         time.sleep(1)
 
-        self.S2_0.angle = 0
-        self.S2_1.angle = 0
+        self.S2_0.angle = 145
+        self.S2_1.angle = 145
         time.sleep(1)
         
         self.B2.angle = 0
