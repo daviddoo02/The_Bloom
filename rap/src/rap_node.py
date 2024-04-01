@@ -22,7 +22,7 @@ class RAP:
         self.pca = PCA9685(i2c)
         self.pca.frequency = 50
 
-        self.smoothing_factor = 0.8
+        self.smoothing_factor = 0.05
 
         rospy.init_node('rap_node')
 
@@ -54,7 +54,7 @@ class RAP:
 
         # Control speed of each panel --> connect to sonar sensor later
         
-        n = 0.3
+        n = 5
 
         self.nb0 = n
         self.ns3 = n
@@ -146,8 +146,8 @@ class RAP:
         return next_angle, index
     
     def get_angle_S_type(self, previous_angle, t, step_size, offset):
-        w = 5                       # s
-        theta = 145/2 * np.sin(t/w + offset) + 145/2
+        w = 50                       
+        theta = 200/2 * np.sin(t/w + offset) + 200/2
         next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         t += step_size
         if t >= (2*np.pi*w):
@@ -155,8 +155,8 @@ class RAP:
         return round(next_angle, 1), t
 
     def get_angle_B_type(self, previous_angle, t, step_size):
-        w = 10                      # s
-        theta = 145/2 * np.cos(t/w + np.pi) + 145/2
+        w = 100                      
+        theta = 200/2 * np.cos(t/w + np.pi) + 200/2
         next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         t += step_size
         if t >= (2*np.pi*w):
