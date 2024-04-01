@@ -6,19 +6,20 @@ import numpy as np
 import csv
 
 def get_angle_S_type(t):
-    theta = 145/2 * np.sin(t/10 + np.pi/2) + 145/2
-    return round(theta, 0)
+    theta = 145/2 * np.sin(t/5 + np.pi/2) + 145/2
+    return round(theta, 1)
 
 def get_angle_B_type(t):
-    theta = 270/2 * np.cos(t/10 + np.pi) + 270/2
-    return round(theta, 0)
+    theta = 145/2 * np.cos(t/15 + np.pi) + 145/2
+    return round(theta, 1)
 
 def main():
-    time_values = np.arange(0, 2*np.pi/(1/10) + 1, 0.25)       # Step of 1
+    time_values_s = np.arange(0, 2*np.pi/(1/5) + 1, 0.1)       # Step of 1
+    time_values_b = np.arange(0, 2*np.pi/(1/15) + 1, 0.1)       # Step of 1
 
     # Calculate angles for S type and B type
-    angles_S_type = [get_angle_S_type(t) for t in time_values]
-    angles_B_type = [get_angle_B_type(t) for t in time_values]
+    angles_S_type = [get_angle_S_type(t) for t in time_values_s]
+    angles_B_type = [get_angle_B_type(t) for t in time_values_b]
 
     # Write angles for S type to CSV file
     with open('../csv/angles_S_type.csv', 'w', newline='') as csvfile_S_type:
