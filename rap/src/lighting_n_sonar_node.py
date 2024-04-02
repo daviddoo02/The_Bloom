@@ -4,10 +4,8 @@
 __authors__ = "David Ho"
 
 import time
-import RPi.GPIO as GPIO
-import rospy
+from Sonar_Sensor import UltraSonic
 from rpi_ws281x import *
-import argparse
 
 # LED strip configuration:
 LED_COUNT      = 27*10     # Number of LED pixels.
@@ -76,94 +74,56 @@ def theaterChaseRainbow(strip, wait_ms=50):
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i+q, 0)
 
-class UltraSonic:
-    def __init__(self, trigger, echo, left=True):
-        # GPIO Mode (BOARD / BCM)
-        GPIO.setmode(GPIO.BCM)
+def startupAnimation(strip, wait_ms=50):
+    """Start up all LEDs with dim white and gradually increase brightness."""
+    target_brightness = 50  # Brightness level to reach
+    current_brightness = 0
 
-        # set GPIO Pins
-        self.GPIO_TRIGGER = trigger
-        self.GPIO_ECHO = echo
+    # Gradually increase brightness
+    while current_brightness < target_brightness:
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, Color(255,255,255))  # Start with the dimmest color
+        strip.setBrightness(current_brightness)
+        strip.show()
+        current_brightness += 1
+        time.sleep(wait_ms / 1000)
 
-        # set GPIO direction (IN / OUT)
-        GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
-        GPIO.setup(self.GPIO_ECHO, GPIO.IN)
-        
-        if left:
-            rospy.init_node('sonar_sensor_node_left')
-            rospy.Timer(rospy.Duration(0.1), self.change_color)
-        else:
-            rospy.init_node('sonar_sensor_node_right')
-            rospy.Timer(rospy.Duration(0.1), self.change_animation)
-
-        while not rospy.is_shutdown():
-            rospy.spin()
-
-        rospy.on_shutdown(self.shut_down)
-
-    def get_distance(self):
-        # set Trigger to HIGH
-        GPIO.output(self.GPIO_TRIGGER, True)
-
-        # set Trigger after 0.01ms to LOW
-        time.sleep(0.00001)
-        GPIO.output(self.GPIO_TRIGGER, False)
-
-        starttime = time.time()
-        stoptime = time.time()
-
-        # save StartTime
-        while GPIO.input(self.GPIO_ECHO) == 0:
-            starttime = time.time()
-
-        # save time of arrival
-        while GPIO.input(self.GPIO_ECHO) == 1:
-            stoptime = time.time()
-
-        # time difference between start and arrival
-        timeelapsed = stoptime - starttime
-        # multiply with the sonic speed (34300 cm/s)
-        # and divide by 2, because there and back
-        distance = (timeelapsed * 34300) / 2
-
-        return distance
-    
-    def shut_down(self):
-        GPIO.cleanup()
-        return
+def transitionToColors(strip, wait_ms=50):
+    """Make LEDs glow bright and slowly transition each 27-pixel unit to different colors."""
+    for j in range(256):
+        for unit in range(LED_COUNT // 27):
+            color = wheel((j + unit * 5) % 255)  # Adjust the value to change the color transition speed
+            for i in range(unit * 27, (unit + 1) * 27):
+                strip.setPixelColor(i, color)
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
 
 # Main program logic follows:
 if __name__ == '__main__':
-    # Process arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
-    args = parser.parse_args()
-
     # Create NeoPixel object with appropriate configuration.
     strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
     # Intialize the library (must be called once before other functions).
     strip.begin()
 
-    print ('Press Ctrl-C to quit.')
-    if not args.clear:
-        print('Use "-c" argument to clear LEDs on exit')
-
     try:
-
+        colorWipe(strip, Color(255, 255, 255))  # White wipe
+        colorWipe(strip, Color(10, 10, 10))  # White wipe
+        # startupAnimation(strip)
         while True:
-            print ('Color wipe animations.')
-            colorWipe(strip, Color(255, 0, 0))  # Red wipe
-            colorWipe(strip, Color(0, 255, 0))  # Blue wipe
-            colorWipe(strip, Color(0, 0, 255))  # Green wipe
-            print ('Theater chase animations.')
-            theaterChase(strip, Color(127, 127, 127))  # White theater chase
-            theaterChase(strip, Color(127,   0,   0))  # Red theater chase
-            theaterChase(strip, Color(  0,   0, 127))  # Blue theater chase
-            print ('Rainbow animations.')
-            rainbow(strip)
-            rainbowCycle(strip)
-            theaterChaseRainbow(strip)
+            transitionToColors(strip)
+            colorWipe(strip, Color(255, 255, 255))  # White wipe
+            # print ('Color wipe animations.')
+            # colorWipe(strip, Color(255, 255, 255))  # White wipe
+            # colorWipe(strip, Color(0, 255, 0))  # Blue wipe
+            # colorWipe(strip, Color(0, 0, 255))  # Green wipe
+            # print ('Theater chase animations.')
+            # theaterChase(strip, Color(127, 127, 127))  # White theater chase
+            # theaterChase(strip, Color(127,   0,   0))  # Red theater chase
+            # theaterChase(strip, Color(  0,   0, 127))  # Blue theater chase
+            # print ('Rainbow animations.')
+            # rainbow(strip)
+            # rainbowCycle(strip)
+            # theaterChaseRainbow(strip)
 
     except KeyboardInterrupt:
-        if args.clear:
-            colorWipe(strip, Color(0,0,0), 10)
+        colorWipe(strip, Color(0,0,0), 10)
