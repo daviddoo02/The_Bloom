@@ -183,45 +183,55 @@ class RAP:
         """
 
         self.B0.angle = self.thb0
-        # time.sleep(0.1)
+        self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
 
         self.S3_0.angle = self.ths3
         self.S3_1.angle = self.ths3
-        # time.sleep(0.1)
+        self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/23)
 
         self.S1_0.angle = self.ths1
         self.S1_1.angle = self.ths1
-        # time.sleep(0.1)
+        self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi*1.5)
         
         self.S0_0.angle = self.ths0
         self.S0_1.angle = self.ths0
-        # time.sleep(0.1)
+        self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi*1.5)
 
         self.S2_0.angle = self.ths2
         self.S2_1.angle = self.ths2
-        # time.sleep(0.1)
+        self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=3)
         
         self.B2.angle = self.thb2
-        # time.sleep(0.1)
+        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi)
 
         self.B1.angle = self.thb1
-        # time.sleep(0.1)
+        self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi/2)
 
-        # self.ths0, self.ids0 = self.get_next_angle(self.ths0, self.s_angles, self.ids0, self.ns0)
-        # self.ths1, self.ids1 = self.get_next_angle(self.ths1, self.s_angles, self.ids1, self.ns1)
-        # self.ths2, self.ids2 = self.get_next_angle(self.ths2, self.s_angles, self.ids2, self.ns2)
-        # self.ths3, self.ids3 = self.get_next_angle(self.ths3, self.s_angles, self.ids3, self.ns3)
-        # self.thb0, self.idb0 = self.get_next_angle(self.thb0, self.b_angles, self.idb0, self.nb0)
-        # self.thb1, self.idb1 = self.get_next_angle(self.thb1, self.b_angles, self.idb1, self.nb1)
-        # self.thb2, self.idb2 = self.get_next_angle(self.thb2, self.b_angles, self.idb2, self.nb2)
         
-        self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi/5)
-        self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi/5)
-        self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=-np.pi/2)
-        self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/2)
-        self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
-        self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi)
-        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi/2)
+        # self.B0.angle = self.thb0
+        # self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+
+        # self.S3_0.angle = self.ths3
+        # self.S3_1.angle = self.ths3
+        # self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/2)
+
+        # self.S1_0.angle = self.ths1
+        # self.S1_1.angle = self.ths1
+        # self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi/5)
+        
+        # self.S0_0.angle = self.ths0
+        # self.S0_1.angle = self.ths0
+        # self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi/5)
+
+        # self.S2_0.angle = self.ths2
+        # self.S2_1.angle = self.ths2
+        # self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=-np.pi/2)
+        
+        # self.B2.angle = self.thb2
+        # self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi/2)
+
+        # self.B1.angle = self.thb1
+        # self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi)
 
         return
     

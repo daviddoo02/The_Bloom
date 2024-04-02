@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# NeoPixel library strandtest example
-# Author: Tony DiCola (tony@tonydicola.com)
-#
-# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
-# various animations on a strip of NeoPixels.
+# Adapted from NeoPixel library strandtest example by Author: Tony DiCola (tony@tonydicola.com)
+
+__authors__ = "David Ho"
 
 import time
+import RPi.GPIO as GPIO
+import rospy
 from rpi_ws281x import *
 import argparse
 
@@ -18,8 +18,6 @@ LED_DMA        = 10      # DMA channel to use for generating a signal (try 10)
 LED_BRIGHTNESS = 10      # Set to 0 for darkest and 255 for brightest
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
-
-
 
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms=50):
@@ -77,6 +75,62 @@ def theaterChaseRainbow(strip, wait_ms=50):
             time.sleep(wait_ms/1000.0)
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i+q, 0)
+
+class UltraSonic:
+    def __init__(self, trigger, echo, left=True):
+        # GPIO Mode (BOARD / BCM)
+        GPIO.setmode(GPIO.BCM)
+
+        # set GPIO Pins
+        self.GPIO_TRIGGER = trigger
+        self.GPIO_ECHO = echo
+
+        # set GPIO direction (IN / OUT)
+        GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
+        GPIO.setup(self.GPIO_ECHO, GPIO.IN)
+        
+        if left:
+            rospy.init_node('sonar_sensor_node_left')
+            rospy.Timer(rospy.Duration(0.1), self.change_color)
+        else:
+            rospy.init_node('sonar_sensor_node_right')
+            rospy.Timer(rospy.Duration(0.1), self.change_animation)
+
+        while not rospy.is_shutdown():
+            rospy.spin()
+
+        rospy.on_shutdown(self.shut_down)
+
+    def get_distance(self):
+        # set Trigger to HIGH
+        GPIO.output(self.GPIO_TRIGGER, True)
+
+        # set Trigger after 0.01ms to LOW
+        time.sleep(0.00001)
+        GPIO.output(self.GPIO_TRIGGER, False)
+
+        starttime = time.time()
+        stoptime = time.time()
+
+        # save StartTime
+        while GPIO.input(self.GPIO_ECHO) == 0:
+            starttime = time.time()
+
+        # save time of arrival
+        while GPIO.input(self.GPIO_ECHO) == 1:
+            stoptime = time.time()
+
+        # time difference between start and arrival
+        timeelapsed = stoptime - starttime
+        # multiply with the sonic speed (34300 cm/s)
+        # and divide by 2, because there and back
+        distance = (timeelapsed * 34300) / 2
+
+        return distance
+    
+    def shut_down(self):
+        GPIO.cleanup()
+        return
 
 # Main program logic follows:
 if __name__ == '__main__':
