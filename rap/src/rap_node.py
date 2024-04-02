@@ -54,7 +54,7 @@ class RAP:
 
         # Control speed of each panel --> connect to sonar sensor later
         
-        n = 5
+        n = 1
 
         self.nb0 = n
         self.ns3 = n
@@ -64,7 +64,7 @@ class RAP:
         self.nb2 = n
         self.nb1 = n
 
-        rospy.Timer(rospy.Duration(0.3), self.actuate)
+        rospy.Timer(rospy.Duration(0.1), self.actuate)
         # sub_topic = 'timing'
 
         # self.move_flowers = rospy.Subscriber(sub_topic, timing, self.actuate)
@@ -128,35 +128,35 @@ class RAP:
 
         return
 
-    def get_next_angle(self, previous_angle, angle_list, index, multiplier):
-        """
-        Function:
-            Get next angle and index for servo
+    # def get_next_angle(self, previous_angle, angle_list, index, multiplier):
+    #     """
+    #     Function:
+    #         Get next angle and index for servo
         
-        """
-        theta = angle_list[index]
+    #     """
+    #     theta = angle_list[index]
 
-        # next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
-        next_angle = theta
+    #     # next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
+    #     next_angle = theta
 
-        index += 1 * multiplier
-        if index >= len(angle_list):
-            index = 0
+    #     index += 1 * multiplier
+    #     if index >= len(angle_list):
+    #         index = 0
         
-        return next_angle, index
+    #     return next_angle, index
     
     def get_angle_S_type(self, previous_angle, t, step_size, offset):
-        w = 50                       
-        theta = 200/2 * np.sin(t/w + offset) + 200/2
+        w = 25                       
+        theta = 180/2 * np.sin(t/w + offset) + 180/2
         next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         t += step_size
         if t >= (2*np.pi*w):
             t = 0
         return round(next_angle, 1), t
 
-    def get_angle_B_type(self, previous_angle, t, step_size):
-        w = 100                      
-        theta = 200/2 * np.cos(t/w + np.pi) + 200/2
+    def get_angle_B_type(self, previous_angle, t, step_size, offset):
+        w = 50                      
+        theta = 200/2 * np.cos(t/w + offset) + 200/2
         next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         t += step_size
         if t >= (2*np.pi*w):
@@ -219,9 +219,9 @@ class RAP:
         self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi/5)
         self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=-np.pi/2)
         self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/2)
-        self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0)
-        self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1)
-        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2)
+        self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+        self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi)
+        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi/2)
 
         return
     
