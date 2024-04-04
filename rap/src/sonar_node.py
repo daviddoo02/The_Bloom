@@ -65,6 +65,8 @@ class Sonar_node:
         while not rospy.is_shutdown():
             rospy.spin()
 
+            # Testing testing
+
         rospy.on_shutdown(self.shutdown)
 
     def to_scan_or_not_to_scan(self, msg):
