@@ -4,7 +4,6 @@
 __authors__ = "David Ho"
 
 import time
-from Sonar_Sensor import UltraSonic
 from rpi_ws281x import *
 
 # LED strip configuration:

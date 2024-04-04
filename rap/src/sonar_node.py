@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import RPi.GPIO as GPIO
+import rospy
+from std_msgs.msg import Bool
 import time
 
 class UltraSonic:
@@ -46,3 +48,42 @@ class UltraSonic:
     def shut_down(self):
         GPIO.cleanup()
         return
+    
+class Sonar_node:
+    def __init__(self):
+
+        self.left_sonar = UltraSonic(17, 27)
+        self.right_sonar = UltraSonic(23, 24)
+
+        rospy.init_node('sonar_node')
+
+        self.status = True
+
+        sub_topic = "keep_scanning"
+        rospy.Subscriber(sub_topic, Bool , self.to_scan_or_not_to_scan)
+
+        while not rospy.is_shutdown():
+            rospy.spin()
+
+        rospy.on_shutdown(self.shutdown)
+
+    def to_scan_or_not_to_scan(self, msg):
+        scan = msg.
+
+    def scan(self, msg):
+        if 
+            d_l = self.left_sonar.get_distance()
+            d_r = self.right_sonar.get_distance()
+        return
+        
+    def shutdown(self):
+        GPIO.cleanup()
+        return
+
+if __name__ == '__main__':
+
+    try:
+        sonar = Sonar_node()
+
+    except (rospy.ROSInterruptException, KeyboardInterrupt, SystemExit):
+        pass
