@@ -51,7 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   distance.msg
-  timing.msg
+  animation.msg
 )
 
 ## Generate services in the 'srv' folder

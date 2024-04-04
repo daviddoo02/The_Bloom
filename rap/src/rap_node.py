@@ -3,7 +3,8 @@
 __authors__ = "David Ho"
 
 import rospy
-from rap.msg import distance, timing
+from rap.msg import animation
+from std_msgs.msg import Bool
 import time
 
 import numpy as np
@@ -23,65 +24,25 @@ class RAP:
         self.pca.frequency = 50
 
         self.smoothing_factor = 0.05
+        self.animation_id = 2
 
         rospy.init_node('rap_node')
 
+        self.continue_scan = rospy.Publisher('keep_scanning', Bool, queue_size=10)
+
+        self.start = True
+
         self.initialize_servos()
 
-        # s_type_csv = 'csv/angles_S_type.csv'
-        # b_type_csv = 'csv/angles_B_type.csv'
-
-        # self.s_angles = self.load_angle_values(s_type_csv)
-        # self.b_angles = self.load_angle_values(b_type_csv)
-
-        self.ids0 = 0
-        self.ids1 = 0
-        self.ids2 = 0
-        self.ids3 = 0
-        self.idb0 = 0
-        self.idb1 = 0
-        self.idb2 = 0
-
-        self.thb0 = 0
-
-        self.ths3 = 145     # offset = np.pi/2
-        self.ths1 = 115     # offset = np.pi/5
-        self.ths0 = 115     # offset = np.pi/5
-        self.ths2 = 0       # offset = -np.pi/2
-
-        self.thb2 = 0
-        self.thb1 = 0
-
-        # Control speed of each panel --> connect to sonar sensor later
-        
-        n = 1
-
-        self.nb0 = n
-        self.ns3 = n
-        self.ns1 = n
-        self.ns0 = n
-        self.ns2 = n        
-        self.nb2 = n
-        self.nb1 = n
-
-        rospy.Timer(rospy.Duration(0.1), self.actuate)
-        # sub_topic = 'timing'
-
-        # self.move_flowers = rospy.Subscriber(sub_topic, timing, self.actuate)
+        rospy.Subscriber('animation', animation, self.get_animation_index)
 
         while not rospy.is_shutdown():
+            if self.start:
+                self.continue_scan.publish(True)
+                print("Start")
             rospy.spin()
 
         rospy.on_shutdown(self.shutdown)
-
-    def load_angle_values(self, csv_file):
-        # Load angle values from CSV file
-        angle_values = []
-        with open(csv_file, 'r') as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                angle_values.append(float(row[0]))  # Assuming only one angle per row
-        return angle_values
 
     def initialize_servos(self):
         # Initializing each servos arcordingly
@@ -124,116 +85,192 @@ class RAP:
         
         time.sleep(1)
 
+        # Periods of each function, small = faster
+        self.w_s = 20     
+        self.w_b = 45
+
+        # time id of each servo
+        self.ids0 = 0
+        self.ids1 = 0
+        self.ids2 = 0
+        self.ids3 = 0
+        self.idb0 = 0
+        self.idb1 = 0
+        self.idb2 = 0
+        
+        # Initialize angles
+        self.thb0 = 0
+        self.ths3 = 145     # offset = np.pi/2
+        self.ths1 = 115     # offset = np.pi/5
+        self.ths0 = 115     # offset = np.pi/5
+        self.ths2 = 0       # offset = -np.pi/2
+        self.thb2 = 0
+        self.thb1 = 0
+
+        # Control resolution - smaller = finer        
+        n = 1
+        self.nb0 = n
+        self.ns3 = n
+        self.ns1 = n
+        self.ns0 = n
+        self.ns2 = n        
+        self.nb2 = n
+        self.nb1 = n
+
         self.shutdown()
 
         return
-
-    # def get_next_angle(self, previous_angle, angle_list, index, multiplier):
-    #     """
-    #     Function:
-    #         Get next angle and index for servo
-        
-    #     """
-    #     theta = angle_list[index]
-
-    #     # next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
-    #     next_angle = theta
-
-    #     index += 1 * multiplier
-    #     if index >= len(angle_list):
-    #         index = 0
-        
-    #     return next_angle, index
     
-    def get_angle_S_type(self, previous_angle, t, step_size, offset):
-        w = 25                       
-        theta = 180/2 * np.sin(t/w + offset) + 180/2
+    def get_angle_S_type(self, previous_angle, t, step_size, offset):                  
+        theta = 180/2 * np.sin(t/self.w_s + offset) + 180/2
         next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         t += step_size
-        if t >= (2*np.pi*w):
-            t = 0
+        # if t >= (2*np.pi*self.w_s):
+        #     t = 0
         return round(next_angle, 1), t
 
     def get_angle_B_type(self, previous_angle, t, step_size, offset):
-        w = 50                      
-        theta = 200/2 * np.cos(t/w + offset) + 200/2
+        theta = 200/2 * np.cos(t/self.w_b + offset) + 200/2
         next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         t += step_size
-        if t >= (2*np.pi*w):
-            t = 0
+        # if t >= (2*np.pi*self.w_b):
+        #     t = 0
         return round(next_angle, 1), t
     
-    def actuate(self, msg):
-        """
-        self.ths0, self.ids0
-        self.ths1, self.ids1
-        self.ths2, self.ids2
-        self.ths3, self.ids3
-        self.thb0, self.idb0
-        self.thb1, self.idb1
-        self.thb2, self.idb2
+    def get_animation_index(self, msg):
+        self.animation_id = msg.animation_index
+        print(self.animation_id)
+        self.continue_scan.publish(False)
+        self.start = False
 
-        self.ns0
-        self.ns1
-        self.ns2
-        self.ns3
-        self.nb0
-        self.nb1
-        self.nb2
+        self.loop = True
+
+        if self.loop:
+            # print("Entering loop")
+            # rospy.Timer(rospy.Duration(0.1), self.actuate)
+            self.actuate()
+        
+        self.continue_scan.publish(True)
+    
+    def actuate(self, timer = 0):
         """
+        """
+        print("Actuating")
+        
+        if self.animation_id == 0:   # Left Bloom
+            self.Left_Bloom()
+        if self.animation_id == 1:   # Right Bloom
+            self.Right_Bloom()
+        if self.animation_id == 2:   # Default
+            self.Default()
+        else:
+            self.loop = False
+    
+    def Left_Bloom(self):              # Left bloom animation
+        print("Left")
+        self.S2_0.angle = self.ths2
+        self.S2_1.angle = self.ths2
+        self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=0)
+
+        if self.ids2 > (np.pi*self.w_s):
+            self.S1_0.angle = self.ths1
+            self.S1_1.angle = self.ths1
+            self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=0)
+
+        if self.ids1 > (np.pi*self.w_s):
+            self.S0_0.angle = self.ths0
+            self.S0_1.angle = self.ths0
+            self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=0)
+
+        if self.ids0 > (np.pi*self.w_s):
+            self.S3_0.angle = self.ths3
+            self.S3_1.angle = self.ths3
+            self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=0)
+
+        if self.ids3 > (np.pi*self.w_s):
+            self.B0.angle = self.thb0
+            self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+
+        if self.idb0 > (np.pi*self.w_b):
+            self.B1.angle = self.thb1
+            self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=0)
+
+        if self.idb1 > (np.pi*self.w_b):
+            self.B2.angle = self.thb2
+            self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=0)
+
+        if self.idb2 > 4 * (np.pi*self.w_b):        # Determines how long each loop is
+            self.loop = False
+
+
+    def Right_Bloom(self):              # Right bloom animation
+        print("Right")
+        self.B2.angle = self.thb2
+        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=0)
+
+        if self.idb2 > (np.pi*self.w_b):
+            self.B1.angle = self.thb1
+            self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=0)
+
+        if self.idb1 > (np.pi*self.w_b):
+            self.B0.angle = self.thb0
+            self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+
+        if self.idb0 > (np.pi*self.w_b):
+            self.S3_0.angle = self.ths3
+            self.S3_1.angle = self.ths3
+            self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=0)
+
+        if self.ids3 > (np.pi*self.w_s):
+            self.S0_0.angle = self.ths0
+            self.S0_1.angle = self.ths0
+            self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=0)
+
+        if self.ids0 > (np.pi*self.w_s):
+            self.S1_0.angle = self.ths1
+            self.S1_1.angle = self.ths1
+            self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=0)
+        
+        if self.ids1 > (np.pi*self.w_s):
+            self.S2_0.angle = self.ths2
+            self.S2_1.angle = self.ths2
+            self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=0)
+
+        if self.ids2 > 4 * (np.pi*self.w_s):        # Determines how long each loop is
+            self.loop = False
+    
+    def Default(self):                  # Default animation
+        print("Default")
+        self.S2_0.angle = self.ths2
+        self.S2_1.angle = self.ths2
+        self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=0)
+
+        self.S1_0.angle = self.ths1
+        self.S1_1.angle = self.ths1
+        self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=0)
+
+        self.S0_0.angle = self.ths0
+        self.S0_1.angle = self.ths0
+        self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=0)
+
+        self.S3_0.angle = self.ths3
+        self.S3_1.angle = self.ths3
+        self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=0)
 
         self.B0.angle = self.thb0
         self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
 
-        self.S3_0.angle = self.ths3
-        self.S3_1.angle = self.ths3
-        self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/23)
-
-        self.S1_0.angle = self.ths1
-        self.S1_1.angle = self.ths1
-        self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi*1.5)
-        
-        self.S0_0.angle = self.ths0
-        self.S0_1.angle = self.ths0
-        self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi*1.5)
-
-        self.S2_0.angle = self.ths2
-        self.S2_1.angle = self.ths2
-        self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=3)
-        
-        self.B2.angle = self.thb2
-        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi)
-
         self.B1.angle = self.thb1
-        self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi/2)
+        self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=0)
 
-        
-        # self.B0.angle = self.thb0
-        # self.thb0, self.idb0 = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+        self.B2.angle = self.thb2
+        self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=0)
 
-        # self.S3_0.angle = self.ths3
-        # self.S3_1.angle = self.ths3
-        # self.ths3, self.ids3 = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/2)
+        print(self.idb2, '    ', self.thb2)
 
-        # self.S1_0.angle = self.ths1
-        # self.S1_1.angle = self.ths1
-        # self.ths1, self.ids1 = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi/5)
-        
-        # self.S0_0.angle = self.ths0
-        # self.S0_1.angle = self.ths0
-        # self.ths0, self.ids0 = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi/5)
-
-        # self.S2_0.angle = self.ths2
-        # self.S2_1.angle = self.ths2
-        # self.ths2, self.ids2 = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=-np.pi/2)
-        
-        # self.B2.angle = self.thb2
-        # self.thb2, self.idb2 = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi/2)
-
-        # self.B1.angle = self.thb1
-        # self.thb1, self.idb1 = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi)
-
-        return
+        if self.idb2 > 4 * (np.pi*self.w_b):        # Determines how long each loop is
+            self.loop = False
+            print("Exiting")
     
     def shutdown(self):
         """
@@ -249,31 +286,30 @@ class RAP:
         self.B1
         self.B2
         """
-        self.B0.angle = 0
+        self.S2_0.angle = 145
+        self.S2_1.angle = 145
+        time.sleep(1)
+
+        self.S1_0.angle = 145
+        self.S1_1.angle = 145
+        time.sleep(1)
+
+        self.S0_0.angle = 145
+        self.S0_1.angle = 145
         time.sleep(1)
 
         self.S3_0.angle = 145
         self.S3_1.angle = 145
         time.sleep(1)
 
-        self.S1_0.angle = 145
-        self.S1_1.angle = 145
-        time.sleep(1)
-        
-        self.S0_0.angle = 145
-        self.S0_1.angle = 145
-        time.sleep(1)
-
-        self.S2_0.angle = 145
-        self.S2_1.angle = 145
-        time.sleep(1)
-        
-        self.B2.angle = 0
+        self.B0.angle = 0
         time.sleep(1)
 
         self.B1.angle = 0
         time.sleep(1)
 
+        self.B2.angle = 0
+        time.sleep(1)
         return
 
 if __name__ == '__main__':

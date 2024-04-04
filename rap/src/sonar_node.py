@@ -3,6 +3,7 @@
 import RPi.GPIO as GPIO
 import rospy
 from std_msgs.msg import Bool
+from rap.msg import animation
 import time
 
 class UltraSonic:
@@ -52,31 +53,46 @@ class UltraSonic:
 class Sonar_node:
     def __init__(self):
 
-        self.left_sonar = UltraSonic(17, 27)
-        self.right_sonar = UltraSonic(23, 24)
+        self.left_sonar = UltraSonic(17, 27)        # 17, 27
+        self.right_sonar = UltraSonic(23, 24)       # 23, 24
 
         rospy.init_node('sonar_node')
 
-        self.status = True
-
         sub_topic = "keep_scanning"
         rospy.Subscriber(sub_topic, Bool , self.to_scan_or_not_to_scan)
+        self.animation_msg = animation()
+        self.pub = rospy.Publisher('animation', animation, queue_size=10)
 
         while not rospy.is_shutdown():
             rospy.spin()
 
-            # Testing testing
-
         rospy.on_shutdown(self.shutdown)
 
     def to_scan_or_not_to_scan(self, msg):
-        scan = msg.
+        scan = msg.data
+        if scan:
+            self.get_animation()
 
-    def scan(self, msg):
-        if 
-            d_l = self.left_sonar.get_distance()
-            d_r = self.right_sonar.get_distance()
-        return
+    def get_animation(self):
+        d_l = self.left_sonar.get_distance()
+        d_r = self.right_sonar.get_distance()
+        print("d_l:", d_l, "d_r:", d_r)
+
+        if d_l < 100:
+            self.animation_msg.animation_index = 0
+            rospy.loginfo(self.animation_msg.animation_index)
+            self.pub.publish(self.animation_msg)
+            time.sleep(0.1)
+        elif d_r < 100:
+            self.animation_msg.animation_index = 1
+            rospy.loginfo(self.animation_msg.animation_index)
+            self.pub.publish(self.animation_msg)
+            time.sleep(0.1)
+        else:
+            self.animation_msg.animation_index = 2
+            rospy.loginfo(self.animation_msg.animation_index)
+            self.pub.publish(self.animation_msg)
+            time.sleep(0.1)
         
     def shutdown(self):
         GPIO.cleanup()
