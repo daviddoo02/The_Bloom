@@ -13,50 +13,6 @@ from adafruit_motor import servo
 from adafruit_pca9685 import PCA9685
 import csv
 
-class UltraSonic:
-    def __init__(self, trigger, echo):
-        # GPIO Mode (BOARD / BCM)
-        GPIO.setmode(GPIO.BCM)
-
-        # set GPIO Pins
-        self.GPIO_TRIGGER = trigger
-        self.GPIO_ECHO = echo
-
-        # set GPIO direction (IN / OUT)
-        GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
-        GPIO.setup(self.GPIO_ECHO, GPIO.IN)
-
-    def get_distance(self):
-        # set Trigger to HIGH
-        GPIO.output(self.GPIO_TRIGGER, True)
-
-        # set Trigger after 0.01ms to LOW
-        time.sleep(0.00001)
-        GPIO.output(self.GPIO_TRIGGER, False)
-
-        starttime = time.time()
-        stoptime = time.time()
-
-        # save StartTime
-        while GPIO.input(self.GPIO_ECHO) == 0:
-            starttime = time.time()
-
-        # save time of arrival
-        while GPIO.input(self.GPIO_ECHO) == 1:
-            stoptime = time.time()
-
-        # time difference between start and arrival
-        timeelapsed = stoptime - starttime
-        # multiply with the sonic speed (34300 cm/s)
-        # and divide by 2, because there and back
-        distance = (timeelapsed * 34300) / 2
-
-        return distance
-    
-    def shut_down(self):
-        GPIO.cleanup()
-        return
-
 class RAP:
     def __init__(self) -> None:
 
@@ -67,6 +23,7 @@ class RAP:
         self.smoothing_factor = 0.05
         self.animation_id = 2
         self.scan = True
+        self.start = True
         self.count = 0
 
         rospy.init_node('rap_node')
@@ -119,14 +76,11 @@ class RAP:
         self.B2 = servo.Servo(
             self.pca.channels[10], min_pulse=500, max_pulse=2600, actuation_range=270)
         
-        self.left_sonar = UltraSonic(17, 27)        # 17, 27
-        self.right_sonar = UltraSonic(23, 24)       # 23, 24
-        
         time.sleep(1)
 
         # Periods of each function, small = faster
         self.w_s = 20     
-        self.w_b = 45
+        self.w_b = 70
 
         # time id of each servo
         self.ids0 = 0
@@ -136,12 +90,21 @@ class RAP:
         self.idb0 = 0
         self.idb1 = 0
         self.idb2 = 0
+
+        # reset status
+        self.reset_s0 = True
+        self.reset_s1 = True
+        self.reset_s2 = True
+        self.reset_s3 = True
+        self.reset_b0 = True
+        self.reset_b1 = True
+        self.reset_b2 = True
         
         # Initialize angles
         self.thb0 = 0
-        self.ths3 = 145     # offset = np.pi/2
-        self.ths1 = 115     # offset = np.pi/5
-        self.ths0 = 115     # offset = np.pi/5
+        self.ths3 = 0     # offset = np.pi/2
+        self.ths1 = 0     # offset = np.pi/5
+        self.ths0 = 0     # offset = np.pi/5
         self.ths2 = 0       # offset = -np.pi/2
         self.thb2 = 0
         self.thb1 = 0
@@ -160,7 +123,7 @@ class RAP:
 
         return
     
-    def get_angle_S_type(self, previous_angle, t, step_size, offset, count):
+    def get_angle_S_type(self, init_angle, previous_angle, t, step_size, offset, count=0, reset=True):
         if t < 0:
             next_angle = previous_angle
         else:
@@ -172,10 +135,16 @@ class RAP:
         
         if t >= (2*np.pi*self.w_s):
             t = 0
+            # if reset:
+                # t = 0
+                # reset = False
+            # else:
+            #     theta = init_angle
+            #     next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         
-        return round(next_angle, 1), t, count
+        return round(next_angle, 1), t, count, reset
 
-    def get_angle_B_type(self, previous_angle, t, step_size, offset, count):
+    def get_angle_B_type(self, init_angle, previous_angle, t, step_size, offset, count=0, reset=True):
         if t < 0:
             next_angle = previous_angle
         else:
@@ -187,9 +156,25 @@ class RAP:
         
         if t >= (2*np.pi*self.w_b):
             t = 0
+            # if reset:
+            #     t = 0
+            #     reset = False
+            # else:
+            #     theta = init_angle
+            #     next_angle = self.smoothing_factor * theta + (1 - self.smoothing_factor) * previous_angle
         
-        return round(next_angle, 1), t, count
+        return round(next_angle, 1), t, count, reset
 
+    def reset_all(self):
+        # reset status
+        self.reset_s0 = False
+        self.reset_s1 = False
+        self.reset_s2 = False
+        self.reset_s3 = False
+        self.reset_b0 = False
+        self.reset_b1 = False
+        self.reset_b2 = False
+    
     def get_animation(self):
         d_l = self.left_sonar.get_distance()
         d_r = self.right_sonar.get_distance()
@@ -206,89 +191,100 @@ class RAP:
             return 2
     
     def actuate(self, timer = 0):
-        if self.scan:
-            self.animation_id = self.get_animation()
-            self.scan = False
+        self.Default()
+
+        # if self.scan:
+        #     self.animation_id = self.get_animation()
+        #     self.scan = False
         
-        if self.animation_id == 0:      # Left Bloom
-            self.Left_Bloom()
-        elif self.animation_id == 1:    # Right Bloom
-            self.Right_Bloom()
-        elif self.animation_id == 2:    # Default
-            self.Default()
-        else:
-            self.Default()
+        # if self.animation_id == 0:      # Left Bloom
+        #     if self.start:
+        #         n = round(np.pi*self.w_s / 3, 0)
+        #         self.ids2 -= n * 0
+        #         self.ids1 -= n * 1
+        #         self.ids3 -= n * 1
+        #         self.ids0 -= n * 2
+        #         self.idb0 -= n * 3
+        #         self.idb2 -= n * 3
+        #         self.idb1 -= n * 4
+        #         self.start = False
+        #     self.Left_Bloom()
+        # elif self.animation_id == 1:    # Right Bloom
+        #     self.Right_Bloom(self.start)
+        # elif self.animation_id == 2:    # Default
+        #     self.Default(self.start)
+        # else:
+        #     self.Default()
     
     def Left_Bloom(self):               # Left bloom animation
         print("Left")
         # Delays
-        n = round(np.pi*self.w_b, 0)
-        self.ids2 -= n * 0
-        self.ids1 -= n * 1
-        self.ids0 -= n * 2
-        self.ids3 -= n * 3
-        self.idb0 -= n * 4
-        self.idb1 -= n * 5
-        self.idb2 -= n * 6
-
         self.S2_0.angle = self.ths2
         self.S2_1.angle = self.ths2
-        self.ths2, self.ids2, _ = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=0)
+        self.ths2, self.ids2, _, self.reset_s2 = self.get_angle_S_type(self.S2_start_angle, self.ths2, t=self.ids2, step_size=self.ns2, offset=0, reset=self.reset_s2)
 
         self.S1_0.angle = self.ths1
         self.S1_1.angle = self.ths1
-        self.ths1, self.ids1, _ = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=0)
-
-        self.S0_0.angle = self.ths0
-        self.S0_1.angle = self.ths0
-        self.ths0, self.ids0, _ = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=0)
+        self.ths1, self.ids1, _, self.reset_s1 = self.get_angle_S_type(self.S1_start_angle, self.ths1, t=self.ids1, step_size=self.ns1, offset=0, reset=self.reset_s1)
 
         self.S3_0.angle = self.ths3
         self.S3_1.angle = self.ths3
-        self.ths3, self.ids3, _ = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=0)
+        self.ths3, self.ids3, _, self.reset_s3 = self.get_angle_S_type(self.S3_start_angle, self.ths3, t=self.ids3, step_size=self.ns3, offset=0, reset=self.reset_s3)
+
+        self.S0_0.angle = self.ths0
+        self.S0_1.angle = self.ths0
+        self.ths0, self.ids0, _, self.reset_s0 = self.get_angle_S_type(self.S0_start_angle, self.ths0, t=self.ids0, step_size=self.ns0, offset=0, reset=self.reset_s0)
 
         self.B0.angle = self.thb0
-        self.thb0, self.idb0, _ = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+        self.thb0, self.idb0, _, self.reset_b0 = self.get_angle_B_type(self.B0_start_angle, self.thb0, t=self.idb0, step_size=self.nb0, offset=0, reset=self.reset_b0)
 
         self.B1.angle = self.thb1
-        self.thb1, self.idb1, _ = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=0)
+        self.thb1, self.idb1, _, self.reset_b1 = self.get_angle_B_type(self.B1_start_angle, self.thb1, t=self.idb1, step_size=self.nb1, offset=0, reset=self.reset_b1)
 
         self.B2.angle = self.thb2
-        self.thb2, self.idb2, self.count = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=0)
+        self.thb2, self.idb2, self.count_b2, self.reset_b2 = self.get_angle_B_type(self.B2_start_angle, self.thb2, t=self.idb2, step_size=self.nb2, offset=0, count=self.count, reset=self.reset_b2)
 
-        if self.count > 1 * (2*np.pi*self.w_b):        # Determines how long each loop is
+        print("idb2: ", self.idb2)
+
+        print(self.count_b2)
+
+        if self.idb2 > 1 * (2*np.pi*self.w_b):        # Determines how long each loop is
             self.scan = True
-            self.count = 0
+            self.start = True
+            # self.count_b2 = 0
+            self.reset_all_status()
             print("Exiting")
 
-    def Right_Bloom(self):              # Right bloom animation
+    def Right_Bloom(self, start):              # Right bloom animation
         print("Right")
         # Delays
-        n = round(np.pi*self.w_s, 0)
-        self.idb2 -= n * 0
-        self.idb1 -= n * 1
-        self.idb0 -= n * 2
-        self.ids3 -= n * 3
-        self.ids0 -= n * 4
-        self.ids1 -= n * 5
-        self.ids2 -= n * 6
+        if start:
+            n = round(np.pi*self.w_s / 4, 0)
+            self.idb2 -= n * 0
+            self.idb1 -= n * 1
+            self.idb0 -= n * 2
+            self.ids0 -= n * 3
+            self.ids3 -= n * 3
+            self.ids1 -= n * 4
+            self.ids2 -= n * 5
 
         self.B2.angle = self.thb2
         self.thb2, self.idb2, _ = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=0)
 
         self.B1.angle = self.thb1
         self.thb1, self.idb1, _ = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=0)
+        print('idb1:', self.idb1)
 
         self.B0.angle = self.thb0
         self.thb0, self.idb0, _ = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
 
-        self.S3_0.angle = self.ths3
-        self.S3_1.angle = self.ths3
-        self.ths3, self.ids3, _ = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=0)
-
         self.S0_0.angle = self.ths0
         self.S0_1.angle = self.ths0
         self.ths0, self.ids0, _ = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=0)
+
+        self.S3_0.angle = self.ths3
+        self.S3_1.angle = self.ths3
+        self.ths3, self.ids3, _ = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=0)
 
         self.S1_0.angle = self.ths1
         self.S1_1.angle = self.ths1
@@ -296,54 +292,61 @@ class RAP:
 
         self.S2_0.angle = self.ths2
         self.S2_1.angle = self.ths2
-        self.ths2, self.ids2, self.count = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=0)
+        self.ths2, self.ids2, self.count = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=0, count=self.count)
 
-        if self.count > 1 * (2*np.pi*self.w_s):        # Determines how long each loop is
+        print(self.count)
+
+        if self.count > 2 * (2*np.pi*self.w_s):        # Determines how long each loop is
             self.scan = True
             self.count = 0
+            self.start = True
+            # self.reset_servos()
             print("Exiting")
     
     def Default(self):                  # Default animation
         print("Default")
         self.S2_0.angle = self.ths2
         self.S2_1.angle = self.ths2
-        self.ths2, self.ids2, _ = self.get_angle_S_type(self.ths2, t=self.ids2, step_size=self.ns2, offset=-np.pi/2)
+        self.ths2, self.ids2, _, self.reset_s2 = self.get_angle_S_type(self.S2_start_angle, self.ths2, t=self.ids2, step_size=self.ns2, offset=-np.pi/2, reset=self.reset_s2)
 
         self.S1_0.angle = self.ths1
         self.S1_1.angle = self.ths1
-        self.ths1, self.ids1, _ = self.get_angle_S_type(self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi/5)
-
-        self.S0_0.angle = self.ths0
-        self.S0_1.angle = self.ths0
-        self.ths0, self.ids0, _ = self.get_angle_S_type(self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi/5)
+        self.ths1, self.ids1, _, self.reset_s1 = self.get_angle_S_type(self.S1_start_angle, self.ths1, t=self.ids1, step_size=self.ns1, offset=np.pi/5, reset=self.reset_s1)
 
         self.S3_0.angle = self.ths3
         self.S3_1.angle = self.ths3
-        self.ths3, self.ids3, _ = self.get_angle_S_type(self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/2)
+        self.ths3, self.ids3, _, self.reset_s3 = self.get_angle_S_type(self.S3_start_angle, self.ths3, t=self.ids3, step_size=self.ns3, offset=np.pi/2, reset=self.reset_s3)
+
+        self.S0_0.angle = self.ths0
+        self.S0_1.angle = self.ths0
+        self.ths0, self.ids0, _, self.reset_s0 = self.get_angle_S_type(self.S0_start_angle, self.ths0, t=self.ids0, step_size=self.ns0, offset=np.pi/5, reset=self.reset_s0)
 
         self.B0.angle = self.thb0
-        self.thb0, self.idb0, _ = self.get_angle_B_type(self.thb0, t=self.idb0, step_size=self.nb0, offset=0)
+        self.thb0, self.idb0, _, self.reset_b0 = self.get_angle_B_type(self.B0_start_angle, self.thb0, t=self.idb0, step_size=self.nb0, offset=np.pi/3, reset=self.reset_b0)
 
         self.B1.angle = self.thb1
-        self.thb1, self.idb1, _ = self.get_angle_B_type(self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi)
+        self.thb1, self.idb1, _, self.reset_b1 = self.get_angle_B_type(self.B1_start_angle, self.thb1, t=self.idb1, step_size=self.nb1, offset=np.pi, reset=self.reset_b1)
 
         self.B2.angle = self.thb2
-        self.thb2, self.idb2, self.count = self.get_angle_B_type(self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi/2)
+        self.thb2, self.idb2, self.count, self.reset_b2 = self.get_angle_B_type(self.B2_start_angle, self.thb2, t=self.idb2, step_size=self.nb2, offset=np.pi/2, count=self.count, reset=self.reset_b2)
 
-        if self.count > 1 * (2 * np.pi*self.w_b):        # Determines how long each loop is
+        print(self.count)
+        
+        if self.count > (2 * np.pi*self.w_b):        # Determines how long each loop is
             self.scan = True
             self.count = 0
+            self.start = True
+            # self.reset_servos()
             print("Exiting")
 
-    def reset_id(self):
-        # time id of each servo
-        self.ids0 = 0
-        self.ids1 = 0
-        self.ids2 = 0
-        self.ids3 = 0
-        self.idb0 = 0
-        self.idb1 = 0
-        self.idb2 = 0
+    def reset_all_status(self):
+        self.reset_s0 = True
+        self.reset_s1 = True
+        self.reset_s2 = True
+        self.reset_s3 = True
+        self.reset_b0 = True
+        self.reset_b1 = True
+        self.reset_b2 = True
     
     def shutdown(self):
         """
@@ -359,30 +362,38 @@ class RAP:
         self.B1
         self.B2
         """
-        self.S2_0.angle = 145
-        self.S2_1.angle = 145
-        time.sleep(1)
+        self.S2_start_angle = 0
+        self.S1_start_angle = 0
+        self.S0_start_angle = 0
+        self.S3_start_angle = 0
+        self.B0_start_angle = 0
+        self.B1_start_angle = 0
+        self.B2_start_angle = 0
+        
+        self.S2_0.angle = self.S2_start_angle
+        self.S2_1.angle = self.S2_start_angle
+        # time.sleep(1)
 
-        self.S1_0.angle = 145
-        self.S1_1.angle = 145
-        time.sleep(1)
+        self.S1_0.angle = self.S1_start_angle
+        self.S1_1.angle = self.S1_start_angle
+        # time.sleep(1)
 
-        self.S0_0.angle = 145
-        self.S0_1.angle = 145
-        time.sleep(1)
+        self.S0_0.angle = self.S0_start_angle
+        self.S0_1.angle = self.S0_start_angle
+        # time.sleep(1)
 
-        self.S3_0.angle = 145
-        self.S3_1.angle = 145
-        time.sleep(1)
+        self.S3_0.angle = self.S3_start_angle
+        self.S3_1.angle = self.S3_start_angle
+        # time.sleep(1)
 
-        self.B0.angle = 0
-        time.sleep(1)
+        self.B0.angle = self.B0_start_angle
+        # time.sleep(1)
 
-        self.B1.angle = 0
-        time.sleep(1)
+        self.B1.angle = self.B1_start_angle
+        # time.sleep(1)
 
-        self.B2.angle = 0
-        time.sleep(1)
+        self.B2.angle = self.B2_start_angle
+        # time.sleep(1)
         return
 
 if __name__ == '__main__':
