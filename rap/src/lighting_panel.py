@@ -7,6 +7,17 @@ import time
 from rpi_ws281x import *
 import RPi.GPIO as GPIO
 import random
+import signal
+import sys
+
+def handle_sigterm(signum, frame):
+    print("Received SIGTERM, shutting down gracefully...")
+    colorWipe(strip, Color(0,0,0), 10)
+    GPIO.cleanup()
+    sys.exit(0)
+
+# Register the SIGTERM handler
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 # LED strip configuration:
 LED_COUNT      = 27*10     # Number of LED pixels.
