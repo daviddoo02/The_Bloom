@@ -1,9 +1,8 @@
 import pygame
 import sys
-from graphics import Rotating_Module, WHITE
+from graphics import Rotating_Module, WHITE, WIDTH, HEIGHT
 
 # Screen dimensions and setup
-WIDTH, HEIGHT = 1600, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("The Bloom - Virtual")
 
@@ -11,14 +10,30 @@ def main():
     # Initialize Pygame
     pygame.init()
 
-    # Create an instance of Rotating_Module
+    # Create instances of Rotating_Module
     Rot1 = Rotating_Module(
-        center_x=WIDTH // 2,
-        center_y=HEIGHT // 2,
-        hex_radius=200,
-        circle_radius=146,
-        start_angle=45,
-        end_angle=270,
+        offset_x= 0,
+        offset_y= 0,
+        start_angle=0,
+        end_angle=200,
+        speed=2,
+        direction=1
+    )
+
+    Rot2 = Rotating_Module(
+        offset_x= 150,
+        offset_y= 86.6,
+        start_angle=0,
+        end_angle=200,
+        speed=2,
+        direction=1
+    )
+
+    Rot3 = Rotating_Module(
+        offset_x= 0,
+        offset_y= 173,
+        start_angle=0,
+        end_angle=200,
         speed=2,
         direction=1
     )
@@ -38,6 +53,10 @@ def main():
         # Draw and update the hexagon with sweeping line animation
         Rot1.draw(screen)
         Rot1.update()
+        Rot2.draw(screen)
+        Rot2.update()
+        Rot3.draw(screen)
+        Rot3.update()
 
         # Update the display and set frame rate
         pygame.display.flip()
