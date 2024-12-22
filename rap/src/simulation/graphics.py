@@ -113,8 +113,12 @@ class Blooming_Module:
         """
         self.center_x = WIDTH // 2 + offset_x
         self.center_y = HEIGHT // 2 - offset_y
+        self.servo1_x = self.center_x - 40.35
+        self.servo1_y = self.center_y + 0.0
+        self.servo2_x = self.center_x + 40.35
+        self.servo2_y = self.center_y + 0.0
         self.hex_radius = 200/2
-        self.circle_radius = 146/2
+        self.circle_radius = 146/4
         self.start_angle = start_angle
         self.end_angle = end_angle
         self.speed = speed
@@ -137,32 +141,42 @@ class Blooming_Module:
         pygame.draw.polygon(surface, BLACK, points, width=2)  # Width controls the thickness of the outline
 
     def draw_wedge(self, surface):
-        """Draw a wedge that sweeps between start_angle and current_angle."""
+        """Draw 2 wedges that sweeps between start_angle and current_angle."""
         if self.start_angle == self.current_angle:
             return  # Avoid drawing if there's no sweep
 
-        points = [(self.center_x, self.center_y)]  # Start at the circle's center
+        points1 = [(self.servo1_x, self.servo1_y)]  # Start at servo1's center
+        points2 = [(self.servo2_x, self.servo2_y)]  # Start at servo1's center
 
         # Add points along the arc between start_angle and current_angle
         for angle in range(self.start_angle, int(self.current_angle) + 1):
             angle_rad = math.radians(angle)
-            x = self.center_x + self.circle_radius * math.cos(angle_rad)
-            y = self.center_y + self.circle_radius * math.sin(angle_rad)
-            points.append((x, y))
+            x1 = self.servo1_x + self.circle_radius * math.cos(angle_rad)
+            y1 = self.servo1_y + self.circle_radius * math.sin(angle_rad)
+            x2 = self.servo2_x - self.circle_radius * math.cos(angle_rad)
+            y2 = self.servo2_y - self.circle_radius * math.sin(angle_rad)
+            points1.append((x1, y1))
+            points2.append((x2, y2))
 
         # Ensure there are enough points to form a valid polygon
-        if len(points) > 2:
-            pygame.draw.polygon(surface, BLUE, points)
+        if len(points1) > 2:
+            pygame.draw.polygon(surface, BLUE, points1)
+            pygame.draw.polygon(surface, BLUE, points2)
+
+        
 
     def draw_sweeping_line(self, surface):
         """Draw a sweeping line around the circle."""
         # Calculate the endpoint of the line based on the current angle
         angle_rad = math.radians(self.current_angle)
-        x = self.center_x + self.circle_radius * math.cos(angle_rad)
-        y = self.center_y + self.circle_radius * math.sin(angle_rad)
-
+        x1 = self.servo1_x + self.circle_radius * math.cos(angle_rad)
+        y1 = self.servo1_y + self.circle_radius * math.sin(angle_rad)
+        x2 = self.servo2_x - self.circle_radius * math.cos(angle_rad)
+        y2 = self.servo2_y - self.circle_radius * math.sin(angle_rad)
+            
         # Draw the line from the center to the calculated point
-        pygame.draw.line(surface, BLACK, (self.center_x, self.center_y), (x, y), width=5)  # Width controls line thickness
+        pygame.draw.line(surface, BLACK, (self.servo1_x, self.servo1_y), (x1, y1), width=5)  # Width controls line thickness
+        pygame.draw.line(surface, BLACK, (self.servo2_x, self.servo2_y), (x2, y2), width=5)  # Width controls line thickness
 
     def update(self):
         """Update the current angle and reverse direction if needed."""
@@ -182,3 +196,4 @@ class Blooming_Module:
         self.draw_hexagon(surface)
         self.draw_wedge(surface)
         self.draw_sweeping_line(surface)
+        

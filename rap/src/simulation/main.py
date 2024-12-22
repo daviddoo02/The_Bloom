@@ -1,6 +1,6 @@
 import pygame
 import sys
-from graphics import Rotating_Module, WHITE, WIDTH, HEIGHT
+from graphics import Rotating_Module, Blooming_Module, WHITE, WIDTH, HEIGHT
 
 # Screen dimensions and setup
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -38,6 +38,33 @@ def main():
         direction=1
     )
 
+    Blm1 = Blooming_Module(
+        offset_x= -149.93,
+        offset_y= -86.6,
+        start_angle=0,
+        end_angle=200,
+        speed=2,
+        direction=1
+    )
+
+    Blm2 = Blooming_Module(
+        offset_x= -299.93,
+        offset_y= 0,
+        start_angle=0,
+        end_angle=200,
+        speed=2,
+        direction=1
+    )
+
+    Blm3 = Blooming_Module(
+        offset_x= -449.93,
+        offset_y= -86.6,
+        start_angle=0,
+        end_angle=200,
+        speed=2,
+        direction=1
+    )
+
     # Main game loop
     clock = pygame.time.Clock()
     running = True
@@ -57,6 +84,12 @@ def main():
         Rot2.update()
         Rot3.draw(screen)
         Rot3.update()
+        Blm1.draw(screen)
+        Blm1.update()
+        Blm2.draw(screen)
+        Blm2.update()
+        Blm3.draw(screen)
+        Blm3.update()
 
         # Update the display and set frame rate
         pygame.display.flip()
