@@ -8,6 +8,7 @@ ORANGE = (255, 165, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+PINK = (255, 105, 180)
 
 class Rotating_Module:
     def __init__(self, offset_x, offset_y, start_angle=0, end_angle=360, speed=2, direction=1):
@@ -81,6 +82,7 @@ class Rotating_Module:
         """Update the current angle and reverse direction if needed."""
         # Update the current angle based on direction and speed
         self.current_angle += self.direction * self.speed
+        # print(self.current_angle)
 
         # Reverse direction if it reaches the end or start angle
         if self.current_angle >= self.end_angle:
@@ -163,7 +165,6 @@ class Blooming_Module:
             pygame.draw.polygon(surface, BLUE, points1)
             pygame.draw.polygon(surface, BLUE, points2)
 
-        
 
     def draw_sweeping_line(self, surface):
         """Draw a sweeping line around the circle."""
@@ -177,6 +178,28 @@ class Blooming_Module:
         # Draw the line from the center to the calculated point
         pygame.draw.line(surface, BLACK, (self.servo1_x, self.servo1_y), (x1, y1), width=5)  # Width controls line thickness
         pygame.draw.line(surface, BLACK, (self.servo2_x, self.servo2_y), (x2, y2), width=5)  # Width controls line thickness
+
+    def draw_expanding_circle(self, surface):
+        """Draw a circle in the middle that is constrained by the tips of the sweeping lines."""
+        
+        # Calculate endpoints of both sweeping lines based on current angle
+        angle_rad = math.radians(self.current_angle)
+        
+        tip1_x = self.servo1_x + self.circle_radius * math.cos(angle_rad)
+        tip1_y = self.servo1_y + self.circle_radius * math.sin(angle_rad)
+
+        tip2_x = self.servo2_x - self.circle_radius * math.cos(angle_rad)
+        tip2_y = self.servo2_y - self.circle_radius * math.sin(angle_rad)
+
+        # Calculate distance between tips of sweeping lines
+        distance_between_tips = math.sqrt((tip2_x - tip1_x)**2 + (tip2_y - tip1_y)**2)
+
+        # Constrain circle radius to be proportional to this distance
+        dynamic_radius = int(distance_between_tips / 2.5)  # Adjust divisor to scale appropriately
+
+        # Draw constrained circle at module's center
+        pygame.draw.circle(surface, BLACK, (int(self.center_x), int(self.center_y)), dynamic_radius + 3)
+        pygame.draw.circle(surface, PINK, (int(self.center_x), int(self.center_y)), dynamic_radius)
 
     def update(self):
         """Update the current angle and reverse direction if needed."""
@@ -196,4 +219,4 @@ class Blooming_Module:
         self.draw_hexagon(surface)
         self.draw_wedge(surface)
         self.draw_sweeping_line(surface)
-        
+        self.draw_expanding_circle(surface)
