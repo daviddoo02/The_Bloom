@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO
 import rospy
 from std_msgs.msg import Bool
-from rap.msg import animation
+from bloom.msg import animation
 import time
 
 class UltraSonic:

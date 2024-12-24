@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
-from rap.msg import timing
+from bloom.msg import timing
 
 def talker(protocol_obj):
     pub = rospy.Publisher('timing', timing, queue_size=10)

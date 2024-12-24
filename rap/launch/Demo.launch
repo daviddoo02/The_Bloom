@@ -1,4 +1,0 @@
-<launch>
-    <node name="rappity_bot_node" pkg="rap" type="rap_node.py" cwd="node"/>
-    <node name="timing_node" pkg="rap" type="timing_node.py" cwd="node"/>
-</launch>

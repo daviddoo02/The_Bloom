@@ -3,7 +3,7 @@
 __authors__ = "David Ho"
 
 import rospy
-from rap.msg import timing
+from bloom.msg import timing
 import time
 
 import numpy as np
